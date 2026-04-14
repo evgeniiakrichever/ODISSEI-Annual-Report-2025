@@ -40,11 +40,20 @@ jobs:
             });
             await page.evaluate(() => {
               const s = document.createElement('style');
-              s.textContent = '* { transition: none !important; animation: none !important; } .reveal, [class*=\"reveal\"] { opacity: 1 !important; transform: none !important; }';
+              s.textContent = '* { transition: none !important; animation: none !important; } .reveal, [class*=\"reveal\"] { opacity: 1 !important; transform: none !important; } .nav { display: none !important; }';
               document.head.appendChild(s);
               document.querySelectorAll('*').forEach(el => {
                 if (window.getComputedStyle(el).opacity === '0') el.style.opacity = '1';
                 el.style.transform = 'none';
+              });
+              document.querySelectorAll('[data-count]').forEach(el => {
+                const target = el.getAttribute('data-count');
+                const suffix = el.getAttribute('data-suffix') || '';
+                el.textContent = Number(target).toLocaleString() + suffix;
+              });
+              document.querySelectorAll('.bp-fill').forEach(el => {
+                const pct = el.getAttribute('data-pct');
+                if (pct) el.style.width = pct + '%';
               });
             });
             await new Promise(r => setTimeout(r, 3000));
