@@ -34,13 +34,25 @@ jobs:
               args: ['--no-sandbox', '--disable-setuid-sandbox']
             });
             const page = await browser.newPage();
+            await page.setViewport({ width: 794, height: 1123 });
             await page.goto('file://' + path.resolve('index.html'), {
               waitUntil: 'networkidle0',
               timeout: 60000
             });
             await page.evaluate(() => {
               const s = document.createElement('style');
-              s.textContent = '* { transition: none !important; animation: none !important; } .reveal, [class*=\"reveal\"] { opacity: 1 !important; transform: none !important; } .nav { display: none !important; }';
+              s.textContent = \`
+                * { transition: none !important; animation: none !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                .nav, .scroll-hint, .nav-pdf-btn { display: none !important; }
+                body { padding-top: 0 !important; }
+                .reveal, [class*='reveal'] { opacity: 1 !important; transform: none !important; }
+                .hero { height: 1123px !important; min-height: 0 !important; page-break-after: always; }
+                .numbers-band { page-break-inside: avoid; }
+                .s { page-break-inside: avoid; }
+                .inter { page-break-inside: avoid; }
+                .budget-panel { page-break-inside: avoid; }
+                .ws-grid { page-break-inside: avoid; }
+              \`;
               document.head.appendChild(s);
               document.querySelectorAll('*').forEach(el => {
                 if (window.getComputedStyle(el).opacity === '0') el.style.opacity = '1';
