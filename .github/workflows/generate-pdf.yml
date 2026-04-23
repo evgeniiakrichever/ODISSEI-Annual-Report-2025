@@ -39,19 +39,35 @@ jobs:
               waitUntil: 'networkidle0',
               timeout: 60000
             });
+
+            // Scroll through full page to trigger IntersectionObserver
+            await page.evaluate(async () => {
+              await new Promise(resolve => {
+                let totalHeight = 0;
+                const distance = 400;
+                const timer = setInterval(() => {
+                  window.scrollBy(0, distance);
+                  totalHeight += distance;
+                  if (totalHeight >= document.body.scrollHeight) {
+                    clearInterval(timer);
+                    window.scrollTo(0, 0);
+                    resolve();
+                  }
+                }, 50);
+              });
+            });
+
+            await new Promise(r => setTimeout(r, 2000));
+
+            // Force all content visible and fix counters
             await page.evaluate(() => {
               const s = document.createElement('style');
               s.textContent = \`
                 .nav, .nav-pdf-btn, .scroll-hint { display: none !important; }
                 body { padding-top: 0 !important; }
-                * { transition: none !important; animation: none !important; }
-                .reveal, [class*='reveal'] { opacity: 1 !important; transform: none !important; }
+                * { transition: none !important; animation: none !important; opacity: 1 !important; transform: none !important; }
               \`;
               document.head.appendChild(s);
-              document.querySelectorAll('*').forEach(el => {
-                if (window.getComputedStyle(el).opacity === '0') el.style.opacity = '1';
-                el.style.transform = 'none';
-              });
               document.querySelectorAll('[data-count]').forEach(el => {
                 const target = el.getAttribute('data-count');
                 const suffix = el.getAttribute('data-suffix') || '';
@@ -62,7 +78,9 @@ jobs:
                 if (pct) el.style.width = pct + '%';
               });
             });
-            await new Promise(r => setTimeout(r, 3000));
+
+            await new Promise(r => setTimeout(r, 2000));
+
             await page.pdf({
               path: 'ODISSEI-Annual-Report-2025.pdf',
               width: '1440px',
